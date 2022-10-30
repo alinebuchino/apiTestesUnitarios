@@ -4,18 +4,17 @@ import lombok.*;
 
 import javax.persistence.*;
 
-@Getter @Setter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode
 @Entity
+@Table (name = "TB_user")
 public class User {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String nome;
-
-    @Column(unique = true)
     private String email;
     private String password;
 }
