@@ -3,6 +3,7 @@ package io.github.com.br.apitestesunitarios.services;
 import io.github.com.br.apitestesunitarios.domain.User;
 import io.github.com.br.apitestesunitarios.domain.dto.UserDTO;
 import io.github.com.br.apitestesunitarios.repositories.UserRepository;
+import io.github.com.br.apitestesunitarios.services.exceptions.ObjectNotFoundException;
 import io.github.com.br.apitestesunitarios.services.impl.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,6 +14,7 @@ import org.mockito.MockitoAnnotations;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -26,6 +28,7 @@ public class UserServiceImplTest {
     public static final String NOME = "Aline";
     public static final String EMAIL = "aline@gmail.com";
     public static final String PASSWORD = "123";
+    public static final String USUARIO_NAO_ENCONTRADO = "Usuário não encontrado!";
 
     @InjectMocks // cria uma instancia de verdade da classe, para pegar valores reais
     private UserServiceImpl service;
@@ -56,6 +59,33 @@ public class UserServiceImplTest {
         assertEquals(NOME, response.getNome());
         assertEquals(EMAIL, response.getEmail());
         assertEquals(PASSWORD, response.getPassword());
+    }
+
+    @Test
+    void whenFindByIdThenReturnAnObjectNotFoundException(){
+        when(repository.findById(Mockito.anyInt())).thenThrow(new ObjectNotFoundException(USUARIO_NAO_ENCONTRADO));
+
+        try {
+            service.findById(ID);
+        }catch (Exception ex){
+            assertEquals(ObjectNotFoundException.class, ex.getClass());
+            assertEquals(USUARIO_NAO_ENCONTRADO, ex.getMessage());
+        }
+    }
+
+    @Test
+    void whenFindAllThenReturnAnListOfUsers(){
+        when(repository.findAll()).thenReturn(List.of(user));
+        List<User> response = service.findAll();
+
+        assertNotNull(response);
+        assertEquals(1, response.size());
+        assertEquals(User.class, response.get(0).getClass());
+        assertEquals(ID, response.get(0).getId());
+        assertEquals(NOME, response.get(0).getNome());
+        assertEquals(EMAIL, response.get(0).getEmail());
+        assertEquals(PASSWORD, response.get(0).getPassword());
+
     }
 
     void startUser(){
