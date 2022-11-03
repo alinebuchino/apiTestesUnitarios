@@ -3,6 +3,7 @@ package io.github.com.br.apitestesunitarios.services;
 import io.github.com.br.apitestesunitarios.domain.User;
 import io.github.com.br.apitestesunitarios.domain.dto.UserDTO;
 import io.github.com.br.apitestesunitarios.repositories.UserRepository;
+import io.github.com.br.apitestesunitarios.services.exceptions.DataIntegratyViolationException;
 import io.github.com.br.apitestesunitarios.services.exceptions.ObjectNotFoundException;
 import io.github.com.br.apitestesunitarios.services.impl.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +20,8 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
@@ -29,6 +32,7 @@ public class UserServiceImplTest {
     public static final String EMAIL = "aline@gmail.com";
     public static final String PASSWORD = "123";
     public static final String USUARIO_NAO_ENCONTRADO = "Usuário não encontrado!";
+    public static final String EMAIL_JA_CADASTRADO = "E-mail já cadastrado!";
 
     @InjectMocks // cria uma instancia de verdade da classe, para pegar valores reais
     private UserServiceImpl service;
@@ -85,7 +89,71 @@ public class UserServiceImplTest {
         assertEquals(NOME, response.get(0).getNome());
         assertEquals(EMAIL, response.get(0).getEmail());
         assertEquals(PASSWORD, response.get(0).getPassword());
+    }
 
+    @Test
+    void whenCreateThenReturnSuccess(){
+        when(repository.save(any())).thenReturn(user);
+        User response = service.create(userDTO);
+
+        assertNotNull(response);
+        assertEquals(User.class, response.getClass());
+        assertEquals(ID, response.getId());
+        assertEquals(NOME, response.getNome());
+        assertEquals(EMAIL, response.getEmail());
+        assertEquals(PASSWORD, response.getPassword());
+    }
+
+    @Test
+    void whenCreateThenReturnAnDataIntegratyViolationException(){
+        when(repository.findByEmail(EMAIL)).thenThrow(new DataIntegratyViolationException (EMAIL_JA_CADASTRADO));
+
+        try{
+            service.create(userDTO);
+        }catch (Exception ex){
+            assertEquals(DataIntegratyViolationException.class, ex.getClass());
+            assertEquals(EMAIL_JA_CADASTRADO, ex.getMessage());
+        }
+    }
+
+    // OU
+
+    @Test
+    void whenCreateThenReturnAnDataIntegratyViolationExceptionOptionalUser(){
+        when(repository.findByEmail(anyString())).thenReturn(optionalUser);
+
+        try{
+            service.create(userDTO);
+        }catch (Exception ex){
+            assertEquals(DataIntegratyViolationException.class, ex.getClass());
+            assertEquals(EMAIL_JA_CADASTRADO, ex.getMessage());
+        }
+    }
+
+    @Test
+    void whenUpdateThenReturnSuccess(){
+        when(repository.save(any())).thenReturn(user);
+        User response = service.update(userDTO);
+
+        assertNotNull(response);
+        assertEquals(User.class, response.getClass());
+        assertEquals(ID, response.getId());
+        assertEquals(NOME, response.getNome());
+        assertEquals(EMAIL, response.getEmail());
+        assertEquals(PASSWORD, response.getPassword());
+    }
+
+    @Test
+    void whenUpdateThenReturnAnDataIntegratyViolationExceptionOptionalUser(){
+        when(repository.findByEmail(anyString())).thenReturn(optionalUser);
+
+        try{
+            optionalUser.get().setId(2);
+            service.create(userDTO);
+        }catch (Exception ex){
+            assertEquals(DataIntegratyViolationException.class, ex.getClass());
+            assertEquals(EMAIL_JA_CADASTRADO, ex.getMessage());
+        }
     }
 
     void startUser(){
