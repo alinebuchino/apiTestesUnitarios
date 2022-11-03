@@ -20,9 +20,8 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 public class UserServiceImplTest {
@@ -153,6 +152,26 @@ public class UserServiceImplTest {
         }catch (Exception ex){
             assertEquals(DataIntegratyViolationException.class, ex.getClass());
             assertEquals(EMAIL_JA_CADASTRADO, ex.getMessage());
+        }
+    }
+
+    @Test
+    void deleteWithSuccess(){
+        when(repository.findById(anyInt())).thenReturn(optionalUser);
+        doNothing().when(repository).deleteById(anyInt());
+        service.delete(ID);
+        verify(repository, times(1)).deleteById(anyInt());
+    }
+
+    @Test
+    void deleteWithObjectNotFoundException(){
+        when(repository.findById(Mockito.anyInt())).thenThrow(new ObjectNotFoundException(USUARIO_NAO_ENCONTRADO));
+
+        try {
+            service.delete(anyInt());
+        }catch (Exception ex){
+            assertEquals(ObjectNotFoundException.class, ex.getClass());
+            assertEquals(USUARIO_NAO_ENCONTRADO, ex.getMessage());
         }
     }
 
