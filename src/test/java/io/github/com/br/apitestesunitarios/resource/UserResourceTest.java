@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 public class UserResourceTest {
@@ -97,6 +97,34 @@ public class UserResourceTest {
         assertNotNull(response.getHeaders().get("Location"));
     }
 
+    @Test
+    void whenUpdateThenReturnSuccess(){
+        when(service.update(userDTO)).thenReturn(user);
+        when(mapper.map(any(), any())).thenReturn(userDTO);
+
+        ResponseEntity<UserDTO> response = resource.update(ID, userDTO);
+
+        assertNotNull(response);
+        assertNotNull(response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(ResponseEntity.class, response.getClass());
+        assertEquals(userDTO.getClass(), response.getBody().getClass());
+
+        assertEquals(ID, response.getBody().getId());
+        assertEquals(NOME, response.getBody().getNome());
+        assertEquals(EMAIL, response.getBody().getEmail());
+    }
+
+    @Test
+    void whenDeleteThenReturnSuccess(){
+        doNothing().when(service).delete(anyInt());
+
+        ResponseEntity<UserDTO> response = resource.delete(ID);
+        assertNotNull(response);
+        assertEquals(ResponseEntity.class, response.getClass());
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(service, times(1)).delete(anyInt());
+    }
     void startUser(){
         user = new User(ID, NOME, EMAIL, PASSWORD);
         userDTO = new UserDTO(ID, NOME, EMAIL, PASSWORD);
